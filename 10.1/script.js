@@ -12,13 +12,27 @@ var plot = d3.select('.canvas')
     .attr('transform','translate('+ m.l+','+ m.t+')');
 
 //Mapping specific functions
+var scaleColor = d3.scaleLinear().domain([0,.15]).range(['white','red']);
 //Projection
+var projection = d3.geoMercator()
+    .scale((w - 3) / (2 * Math.PI))
+    .translate([w / 2, h / 2]);
+
+var path = d3.geoPath()
+    .projection(projection);
 
 //Geopath
 
-d3.json('../data/world-50m.json',dataloaded);
-
-function dataloaded(err, data){
+d3.json('../data/world-50m.json',function dataloaded(err, data){
     console.log(data); //This is a Topojson data
     console.log(topojson.feature(data,data.objects.countries)); //This is the converted GeoJSON data of countries
-}
+
+
+var countries = topojson.feature(data, data.objects.countries).features
+
+  plot.selectAll(".country")
+      .data(countries)
+      .enter().insert("path", ".graticule")
+      .attr("class", function(d) { return "country " + "code" + d.id; })
+      .attr("d", path);
+});
